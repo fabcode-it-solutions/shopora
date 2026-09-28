@@ -1,0 +1,184 @@
+"use client";
+
+import React from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+
+interface ProductFiltersProps {
+  categories: string[];
+  currentPage: number;
+  totalPages: number;
+}
+
+export default function ProductFilters({
+  categories,
+  currentPage,
+  totalPages,
+}: ProductFiltersProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // URL State Synchronizer Framework
+  const updateQueryParams = (key: string, value: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    
+    if (value) {
+      params.set(key, value);
+    } else {
+      params.delete(key);
+    }
+    
+    // Reset back to page 1 whenever search query updates
+    if (key !== "page") {
+      params.delete("page");
+    }
+
+    router.push(`/?${params.toString()}`);
+  };
+
+  const handleSearchSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const searchValue = formData.get("search") as string;
+    updateQueryParams("search", searchValue.trim());
+  };
+
+  const currentCategory = searchParams.get("category") || "";
+
+  return (
+    <div className="mb-8 space-y-4">
+      {/* Search and Category Control Bar Row */}
+      <div className="flex flex-col sm:flex-row gap-4">
+        
+        {/* Search Input Box */}
+        <div className="flex-1 flex flex-col gap-2">
+          <form onSubmit={handleSearchSubmit} className="relative w-full">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <svg
+                className="h-5 w-5 text-slate-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+            </div>
+            <input
+              type="text"
+              name="search"
+              defaultValue={searchParams.get("search") || ""}
+              placeholder="Search for items, clothing, electronics..."
+              className="w-full pl-10 pr-4 py-3 bg-input-bg border border-input-border rounded-xl text-sm font-medium text-input-text placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent shadow-sm transition"
+            />
+          </form>
+          {/* AI Semantic Search Toggle Pill */}
+          <div className="flex items-center gap-3 px-1 mt-1">
+            <label className="relative inline-flex items-center cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={searchParams.get("semantic") === "true"}
+                onChange={(e) => updateQueryParams("semantic", e.target.checked ? "true" : "")}
+                className="sr-only peer"
+              />
+              <div className="w-9 h-5 bg-slate-200 dark:bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-indigo-650 peer-checked:to-violet-650"></div>
+              <span className="ml-2.5 text-xs font-bold text-slate-500 dark:text-slate-400 peer-checked:text-indigo-600 dark:peer-checked:text-indigo-400 flex items-center gap-1.5 transition-colors">
+                🧠 AI Semantic Search (Smart Meaning Match)
+              </span>
+            </label>
+          </div>
+        </div>
+ 
+        {/* Dynamic Category Filtering Dropdown Menu */}
+        <div className="sm:w-64">
+          <select
+            value={currentCategory}
+            onChange={(e) => updateQueryParams("category", e.target.value)}
+            className="w-full px-4 py-3 bg-input-bg border border-input-border rounded-xl text-sm font-medium text-input-text focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent shadow-sm transition appearance-none cursor-pointer"
+            style={{
+              backgroundImage: `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/></svg>")`,
+              backgroundPosition: "right 1rem center",
+              backgroundSize: "1.25rem",
+              backgroundRepeat: "no-repeat",
+              paddingRight: "2.5rem"
+            }}
+          >
+            <option value="" className="bg-card-bg text-card-text-primary">All Categories</option>
+            {categories.map((cat) => (
+              <option key={cat} value={cat} className="bg-card-bg text-card-text-primary">
+                {cat}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+ 
+      {/* Horizontal Category Pills Bar */}
+      <div className="flex gap-2 overflow-x-auto no-scrollbar py-2 -mx-4 px-4 sm:mx-0 sm:px-0">
+        <button
+          onClick={() => updateQueryParams("category", "")}
+          className={`px-4 py-2.5 text-xs font-bold rounded-xl border transition-all duration-200 whitespace-nowrap flex items-center gap-1.5 cursor-pointer shadow-sm ${
+            !currentCategory
+              ? "bg-gradient-to-r from-indigo-600 to-violet-600 border-transparent text-white shadow-[0_4px_15px_rgba(99,102,241,0.25)]"
+              : "bg-pill-unselected-bg border border-pill-unselected-border text-pill-unselected-text hover:bg-slate-200 dark:hover:bg-slate-800 hover:text-foreground"
+          }`}
+        >
+          🌐 All Items
+        </button>
+        {categories.map((cat) => {
+          let icon = "📦";
+          if (cat.toLowerCase().includes("mobile")) icon = "📱";
+          else if (cat.toLowerCase().includes("audio")) icon = "🎧";
+          else if (cat.toLowerCase().includes("elect")) icon = "💻";
+          else if (cat.toLowerCase().includes("foot")) icon = "👟";
+          else if (cat.toLowerCase().includes("wear")) icon = "⌚";
+          else if (cat.toLowerCase().includes("gaming")) icon = "🎮";
+          else if (cat.toLowerCase().includes("access")) icon = "⌨️";
+ 
+          return (
+            <button
+              key={cat}
+              onClick={() => updateQueryParams("category", cat)}
+              className={`px-4 py-2.5 text-xs font-bold rounded-xl border transition-all duration-200 whitespace-nowrap flex items-center gap-1.5 cursor-pointer shadow-sm ${
+                currentCategory === cat
+                  ? "bg-gradient-to-r from-indigo-600 to-violet-600 border-transparent text-white shadow-[0_4px_15px_rgba(99,102,241,0.25)]"
+                  : "bg-pill-unselected-bg border border-pill-unselected-border text-pill-unselected-text hover:bg-slate-200 dark:hover:bg-slate-800 hover:text-foreground"
+              }`}
+            >
+              <span>{icon}</span>
+              <span>{cat}</span>
+            </button>
+          );
+        })}
+      </div>
+ 
+      {/* Pagination Controller Row Layout */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between pt-4 border-t border-card-border">
+          <p className="text-xs font-semibold text-card-text-secondary">
+            Showing page <span className="text-card-text-primary font-extrabold">{currentPage}</span> of <span className="text-card-text-primary font-extrabold">{totalPages}</span>
+          </p>
+          <div className="flex gap-2">
+            <button
+              onClick={() => updateQueryParams("page", String(currentPage - 1))}
+              disabled={currentPage <= 1}
+              className="px-4 py-2 bg-input-bg text-xs font-bold text-card-text-secondary border border-input-border rounded-xl shadow-sm hover:bg-pill-unselected-bg transition disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              ← Previous
+            </button>
+            <button
+              onClick={() => updateQueryParams("page", String(currentPage + 1))}
+              disabled={currentPage >= totalPages}
+              className="px-4 py-2 bg-input-bg text-xs font-bold text-card-text-secondary border border-input-border rounded-xl shadow-sm hover:bg-pill-unselected-bg transition disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              Next →
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
